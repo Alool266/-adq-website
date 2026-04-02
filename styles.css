@@ -762,6 +762,18 @@ section {
     font-weight: 600;
 }
 
+.dev-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+    border-bottom: 1px solid transparent;
+}
+
+.dev-link:hover {
+    color: var(--accent-color);
+    border-bottom-color: var(--primary-color);
+}
+
 .scroll-top {
     position: fixed;
     bottom: 30px;
