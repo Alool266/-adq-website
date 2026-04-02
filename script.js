@@ -1,3 +1,9 @@
+/**
+ * Website JavaScript
+ * Developed by Ali hasan
+ * Company: Architectural Details of Projects (التفاصيل المعمارية للمشاريع)
+ */
+
 // Language Switcher
 const langBtns = document.querySelectorAll('.lang-btn');
 const html = document.documentElement;

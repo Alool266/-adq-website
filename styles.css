@@ -1,3 +1,9 @@
+/* 
+ * Website Styles
+ * Developed by Ali hasan
+ * Company: Architectural Details of Projects (التفاصيل المعمارية للمشاريع)
+ */
+
 /* Global Styles */
 * {
     margin: 0;
@@ -747,6 +753,13 @@ section {
     padding-top: 1.5rem;
     opacity: 0.8;
     font-size: 0.95rem;
+}
+
+.developer-credit {
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .scroll-top {
