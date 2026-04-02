@@ -593,6 +593,47 @@ section {
     font-size: 1.1rem;
 }
 
+.location-map {
+    background: var(--bg-light);
+    padding: 2.5rem;
+    border-radius: 10px;
+    margin-bottom: 3rem;
+}
+
+.location-map h3 {
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.location-map .address {
+    color: var(--text-gray);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.directions-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: var(--white);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.directions-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(139, 69, 19, 0.3);
+}
+
 .contact-form {
     background: var(--bg-light);
     padding: 3rem;
@@ -812,6 +853,14 @@ html[dir="ltr"] .en {
 
     .projects-grid {
         grid-template-columns: 1fr;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .location-map {
+        padding: 1.5rem;
     }
 
     .footer-content {
