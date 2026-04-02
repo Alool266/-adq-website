@@ -1,0 +1,18 @@
+# GitHub Pages
+*.github.io
+*.githubusercontent.com
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+
+# Build files
+dist/
+build/
