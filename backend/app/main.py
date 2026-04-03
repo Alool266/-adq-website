@@ -187,6 +187,40 @@ def reset_admin():
     finally:
         db.close()
 
+@app.get("/test-password")
+def test_password():
+    """Test if password verification works"""
+    import os
+    db = database.SessionLocal()
+    try:
+        admin = db.query(models.Admin).filter(models.Admin.username == "admin").first()
+        if not admin:
+            return {"error": "Admin not found"}
+        
+        from .auth import verify_password, get_password_hash
+        
+        # Test the password
+        password = "admin123"
+        is_valid = verify_password(password, admin.hashed_password)
+        
+        # Also test creating a new hash and verifying it
+        new_hash = get_password_hash(password)
+        new_hash_valid = verify_password(password, new_hash)
+        
+        return {
+            "username": admin.username,
+            "stored_hash": admin.hashed_password[:50] + "...",
+            "test_password": password,
+            "password_valid": is_valid,
+            "new_hash_works": new_hash_valid,
+            "pwd_context_scheme": "argon2"
+        }
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
+    finally:
+        db.close()
+
 @app.get("/debug")
 def debug_info():
     """Check database path, admin users, and disk status"""
