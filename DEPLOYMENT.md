@@ -1,240 +1,100 @@
-# Deploy ADQ Website to Render.com
-
-Complete step-by-step guide to deploy the ADQ website with admin panel on Render.com (free tier).
-
-## Overview
-
-- **Backend API**: FastAPI + SQLite (hosted on Render)
-- **Frontend Admin**: React (hosted on Render Static Site)
-- **Static Website**: Original HTML/CSS/JS (hosted on GitHub Pages or Render)
+# ADQ Website - Supabase + Vercel Deployment Guide
 
 ## Prerequisites
-
-1. A [Render.com](https://render.com) account (free)
-2. Your GitHub repository: https://github.com/Alool266/-adq-website
-3. Git installed on your computer
-
----
-
-## Step 1: Push Latest Code to GitHub
-
-First, make sure all your code is pushed to GitHub:
-
-```bash
-cd c:/Users/lx/Desktop/-adq-website
-git add .
-git commit -m "Add Render deployment configuration"
-git push origin main
-```
+- GitHub account
+- Supabase account (already created: https://kepyyudsrfhofseownnj.supabase.co)
+- Vercel account (free)
 
 ---
 
-## Step 2: Deploy Backend to Render
+## Step 1: Set Up Supabase Database
 
-### 2.1 Create a New Web Service
-
-1. Go to [https://dashboard.render.com](https://dashboard.render.com)
-2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub account
-4. Select the repository: `Alool266/-adq-website`
-5. Configure the service:
-
-| Setting | Value |
-|---------|-------|
-| **Name** | `adq-backend` |
-| **Region** | Choose closest to your users |
-| **Branch** | `main` |
-| **Root Directory** | `backend` |
-| **Runtime** | `Python 3` |
-| **Build Command** | `pip install -r requirements.txt && python init_db.py` |
-| **Start Command** | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
-| **Plan** | **Free** |
-
-### 2.2 Add Environment Variables
-
-Click **"Advanced"** → **"Add Environment Variable"**:
-
-| Key | Value |
-|-----|-------|
-| `SECRET_KEY` | Click **"Generate"** to create a random string |
-| `DATABASE_URL` | `sqlite:///./data/adq_website.db` |
-
-### 2.3 Add Persistent Disk (for database & uploads)
-
-Scroll to **"Disks"** → **"Add Disk"**:
-
-| Setting | Value |
-|---------|-------|
-| **Name** | `backend-data` |
-| **Mount Path** | `/opt/render/project/src/data` |
-| **Size** | `1 GB` (free tier) |
-
-### 2.4 Deploy
-
-Click **"Create Web Service"** and wait for deployment (~3-5 minutes).
-
-**Note your backend URL**: `https://adq-backend.onrender.com`
+1. Go to your Supabase dashboard: https://supabase.com/dashboard/project/kepyyudsrfhofseownnj
+2. Click **"SQL"** in the left sidebar
+3. Click **"New Query"**
+4. Copy and paste the contents of `backend/supabase-setup.sql`
+5. Click **"Run"** to create all tables
+6. You should see "Success. No rows returned"
 
 ---
 
-## Step 3: Deploy Frontend Admin Panel to Render
+## Step 2: Deploy Backend to Vercel
 
-### 3.1 Create a Static Site
-
-1. Go to [https://dashboard.render.com](https://dashboard.render.com)
-2. Click **"New +"** → **"Static Site"**
-3. Select the repository: `Alool266/-adq-website`
-4. Configure the service:
-
-| Setting | Value |
-|---------|-------|
-| **Name** | `adq-admin` |
-| **Branch** | `main` |
-| **Root Directory** | `frontend` |
-| **Build Command** | `npm install && npm run build` |
-| **Publish Directory** | `build` |
-| **Plan** | **Free** |
-
-### 3.2 Add Environment Variables
-
-| Key | Value |
-|-----|-------|
-| `REACT_APP_API_URL` | `https://adq-backend.onrender.com` (your backend URL) |
-
-### 3.3 Deploy
-
-Click **"Create Static Site"** and wait for deployment (~2-3 minutes).
-
-**Note your admin URL**: `https://adq-admin.onrender.com`
+1. Go to https://vercel.com/new
+2. Import your GitHub repository: `Alool266/-adq-website`
+3. Select the **backend** folder as the root directory
+4. Add Environment Variables:
+   - `SUPABASE_URL` = `https://kepyyudsrfhofseownnj.supabase.co`
+   - `SUPABASE_PASSWORD` = `sWie0KkZwQ2V231p`
+5. Click **"Deploy"**
+6. Wait for deployment (2-3 minutes)
+7. Note your backend URL (e.g., `https://adq-website-backend.vercel.app`)
 
 ---
 
-## Step 4: Update API URL in Frontend
+## Step 3: Deploy Frontend to Vercel
 
-Update the frontend API service to use the production backend URL:
-
-1. Edit `frontend/src/services/api.js`
-2. Change `API_URL` to your Render backend URL:
-
-```javascript
-const API_URL = process.env.REACT_APP_API_URL || 'https://adq-backend.onrender.com/api/v1';
-```
-
-3. Commit and push:
-
-```bash
-git add frontend/src/services/api.js
-git commit -m "Update API URL for production"
-git push origin main
-```
+1. Go to https://vercel.com/new
+2. Import your GitHub repository: `Alool266/-adq-website`
+3. Select the **frontend** folder as the root directory
+4. Add Environment Variable:
+   - `REACT_APP_API_URL` = `[YOUR_BACKEND_URL]` (from Step 7)
+5. Click **"Deploy"**
+6. Wait for deployment (2-3 minutes)
 
 ---
 
-## Step 5: Initialize Database
+## Step 4: Initialize Database
 
-After the backend is deployed, you need to run the database initialization:
+After backend deployment completes:
 
-### Option A: Automatic (via Render Dashboard)
-1. Go to your backend service on Render
-2. Click **"Shell"** tab
-3. Run: `python init_db.py`
-
-### Option B: Manual (via API)
-Open your browser and visit:
-```
-https://adq-backend.onrender.com/health
-```
-
-If it returns `{"status": "healthy"}`, the backend is working.
+1. Visit: `[YOUR_BACKEND_URL]/setup`
+2. You should see: `{"message": "Admin user created! You can now login with admin/admin123"}`
+3. Optionally visit: `[YOUR_BACKEND_URL]/debug` to verify admin exists
 
 ---
 
-## Step 6: Access Your Admin Panel
+## Step 5: Login and Test
 
-1. Go to: `https://adq-admin.onrender.com`
+1. Go to your frontend URL
 2. Login with:
    - **Username**: `admin`
    - **Password**: `admin123`
-3. **⚠️ Change the password immediately!**
+3. You should now have full access to the admin panel!
 
 ---
 
-## Step 7: (Optional) Deploy Static Website to GitHub Pages
+## Important Notes
 
-For the main website (non-admin), you can use GitHub Pages:
-
-1. Go to your repository settings on GitHub
-2. Navigate to **Pages**
-3. Set source to `main` branch, `/` folder
-4. Your site will be at: `https://Alool266.github.io/-adq-website/`
-
----
-
-## URLs After Deployment
-
-| Service | URL |
-|---------|-----|
-| **Backend API** | `https://adq-backend.onrender.com` |
-| **API Docs** | `https://adq-backend.onrender.com/docs` |
-| **Admin Panel** | `https://adq-admin.onrender.com` |
-| **Static Website** | `https://Alool266.github.io/-adq-website/` |
+- **Database**: Supabase PostgreSQL persists all data automatically
+- **File Uploads**: Currently stored locally on Vercel (ephemeral). For production, use Supabase Storage.
+- **Environment Variables**: Keep your Supabase password secure. Never commit it to Git.
+- **Custom Domain**: You can add a custom domain in Vercel settings if needed.
 
 ---
 
 ## Troubleshooting
 
-### Backend won't start
-- Check logs in Render dashboard
-- Ensure `init_db.py` runs successfully
-- Verify environment variables are set
+### Backend deployment fails?
+- Check that `backend/vercel.json` exists
+- Ensure `psycopg2-binary` is in `requirements.txt`
+- Check Vercel logs for specific errors
 
-### Frontend can't connect to backend
-- Check `REACT_APP_API_URL` environment variable
-- Ensure CORS is configured in backend (already done)
-- Check browser console for errors
+### Frontend can't connect?
+- Verify `REACT_APP_API_URL` is set correctly in Vercel environment variables
+- Redeploy frontend after changing env vars
 
-### Images not uploading
-- Ensure persistent disk is mounted correctly
-- Check disk space in Render dashboard
-- Verify file size limits (default: 5MB)
-
-### Database not persisting
-- Ensure persistent disk is configured
-- Check mount path: `/opt/render/project/src/data`
+### Login fails?
+- Visit `[BACKEND_URL]/reset-admin` to reset admin password
+- Check backend logs for errors
+- Verify database tables were created in Supabase
 
 ---
 
-## Admin Credentials
+## Files Modified for Supabase
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | `admin` | `admin123` |
-
-**⚠️ IMPORTANT**: Change the default password after first login!
-
----
-
-## Cost Estimate
-
-| Service | Plan | Cost |
-|---------|------|------|
-| Backend (Web Service) | Free | $0/month |
-| Frontend (Static Site) | Free | $0/month |
-| Database (SQLite on Disk) | Free | $0/month |
-| **Total** | | **$0/month** |
-
----
-
-## Notes
-
-- Render free tier has a 15-minute spin-down period (first request after inactivity takes ~30 seconds)
-- For production use, consider upgrading to a paid plan ($7/month)
-- SQLite is fine for small sites; upgrade to PostgreSQL for larger deployments
-
----
-
-## Support
-
-For issues or questions:
-- Render Docs: https://render.com/docs
-- GitHub Issues: https://github.com/Alool266/-adq-website/issues
+- `backend/app/database.py` - Updated to use Supabase PostgreSQL
+- `backend/requirements.txt` - Added `psycopg2-binary`
+- `backend/vercel.json` - Vercel deployment config
+- `backend/supabase-setup.sql` - Database schema
+- `backend/app/main.py` - Simplified for Vercel serverless
