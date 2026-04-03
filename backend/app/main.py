@@ -112,6 +112,8 @@ def init_default_data():
 # Initialize on startup
 init_default_data()
 
+app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
+
 # Add a simple health check endpoint
 @app.get("/health")
 def health_check():
@@ -140,8 +142,6 @@ def setup_admin():
     finally:
         db.close()
 
-app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
-
 # CORS
 app.add_middleware(
     CORSMiddleware,
@@ -162,7 +162,3 @@ app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 @app.get("/")
 def read_root():
     return {"message": "ADQ Website Admin API"}
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
