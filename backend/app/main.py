@@ -7,9 +7,6 @@ from .database import engine, get_db
 from .routers import admin, content
 import os
 
-# Create database tables (Supabase PostgreSQL)
-models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 
 # CORS
@@ -144,3 +141,14 @@ def debug_info():
 @app.get("/")
 def read_root():
     return {"message": "ADQ Website Admin API"}
+
+# Initialize database tables on startup
+@app.on_event("startup")
+def startup_event():
+    try:
+        models.Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Error creating tables: {e}")
+        import traceback
+        traceback.print_exc()

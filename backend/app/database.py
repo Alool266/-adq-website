@@ -7,7 +7,9 @@ import os
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://kepyyudsrfhofseownnj.supabase.co")
 SUPABASE_PASSWORD = os.environ.get("SUPABASE_PASSWORD", "sWie0KkZwQ2V231p")
 
-# Use Supabase PostgreSQL
+# Use Supabase PostgreSQL with correct connection string format
+# Supabase uses: postgresql://postgres.[PROJECT_REF].[REGION].pooler.supabase.com:6543/postgres
+# Or direct: postgresql://postgres:PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres
 SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{SUPABASE_PASSWORD}@db.kepyyudsrfhofseownnj.supabase.co:5432/postgres"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
