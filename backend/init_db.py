@@ -9,11 +9,10 @@ def init_db():
         # Create default admin user
         admin = db.query(models.Admin).filter(models.Admin.username == "admin").first()
         if not admin:
-            password = "admin123"
             admin = models.Admin(
                 username="admin",
                 email="admin@adq.com",
-                hashed_password=get_password_hash(password[:72])
+                hashed_password=get_password_hash("admin123")
             )
             db.add(admin)
             print("✓ Created admin user: admin / admin123")

@@ -21,11 +21,10 @@ def init_default_data():
         admin = db.query(models.Admin).first()
         if not admin:
             from .auth import get_password_hash
-            password = "admin123"
             admin = models.Admin(
                 username="admin",
                 email="admin@adq.com",
-                hashed_password=get_password_hash(password[:72])
+                hashed_password=get_password_hash("admin123")
             )
             db.add(admin)
             print("✓ Created default admin user")
@@ -131,12 +130,10 @@ def setup_admin():
         admin = db.query(models.Admin).first()
         if not admin:
             from .auth import get_password_hash
-            # Use a short password to avoid bcrypt 72-byte limit
-            password = "admin123"
             admin = models.Admin(
                 username="admin",
                 email="admin@adq.com",
-                hashed_password=get_password_hash(password[:72])
+                hashed_password=get_password_hash("admin123")
             )
             db.add(admin)
             db.commit()
