@@ -145,6 +145,30 @@ def setup_admin():
     finally:
         db.close()
 
+@app.get("/reset-admin")
+def reset_admin():
+    """Visit this endpoint to DELETE and RECREATE admin with argon2 hash"""
+    db = database.SessionLocal()
+    try:
+        from .auth import get_password_hash
+        # Delete ALL existing admins
+        db.query(models.Admin).delete()
+        db.commit()
+        # Create fresh admin with argon2
+        admin = models.Admin(
+            username="admin",
+            email="admin@adq.com",
+            hashed_password=get_password_hash("admin123")
+        )
+        db.add(admin)
+        db.commit()
+        return {"message": "Admin RESET! Login with admin/admin123 (argon2 hash)"}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+    finally:
+        db.close()
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
