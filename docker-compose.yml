@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/data:/app/data
+    environment:
+      - SECRET_KEY=change-this-to-a-secure-random-string-in-production
+      - DATABASE_URL=sqlite:///./data/adq_website.db
+    restart: unless-stopped
+
+  # Frontend Admin Panel
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Static Website (original site)
+  website:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./website:/usr/share/nginx/html
+      - ./backend/uploads:/usr/share/nginx/html/uploads
+    depends_on:
+      - backend
+    restart: unless-stopped
