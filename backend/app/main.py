@@ -112,6 +112,34 @@ def init_default_data():
 # Initialize on startup
 init_default_data()
 
+# Add a simple health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "message": "Backend is running"}
+
+@app.get("/setup")
+def setup_admin():
+    """Visit this endpoint to create admin user if it doesn't exist"""
+    db = database.SessionLocal()
+    try:
+        admin = db.query(models.Admin).first()
+        if not admin:
+            from .auth import get_password_hash
+            admin = models.Admin(
+                username="admin",
+                email="admin@adqdetails.com",
+                hashed_password=get_password_hash("admin123")
+            )
+            db.add(admin)
+            db.commit()
+            return {"message": "Admin user created! You can now login with admin/admin123"}
+        else:
+            return {"message": "Admin user already exists"}
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        db.close()
+
 app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 
 # CORS
