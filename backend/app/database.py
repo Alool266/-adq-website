@@ -3,8 +3,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Use environment variable for database URL, default to local SQLite
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./data/adq_website.db")
+# Use environment variable for database URL
+# Default to absolute path for Render's mounted disk
+DEFAULT_DB_PATH = "/opt/render/project/src/backend/data/adq_website.db"
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
 # Handle SQLite-specific settings
 if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
