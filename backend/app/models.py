@@ -62,7 +62,7 @@ class Service(Base):
     title_en = Column(String, nullable=False)
     description_ar = Column(Text, nullable=True)
     description_en = Column(Text, nullable=True)
-    image_url = Column(String, nullable=False)
+    image_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     order = Column(Integer, default=0)
 

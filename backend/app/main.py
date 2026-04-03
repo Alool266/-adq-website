@@ -7,19 +7,24 @@ from .database import engine, get_db
 from .routers import admin, content
 import os
 
-# Ensure data directory exists
-os.makedirs("data", exist_ok=True)
+# Ensure data directory exists (use absolute path for Render)
+DATA_DIR = "/opt/render/project/src/backend/data"
+os.makedirs(DATA_DIR, exist_ok=True)
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
-# Initialize default data
+# Initialize default data - runs at startup
 def init_default_data():
+    print("\n🔧 Starting database initialization...")
     db = database.SessionLocal()
     try:
-        # Create default admin if none exists
-        admin = db.query(models.Admin).first()
-        if not admin:
+        # Check if admin exists FIRST
+        admin_count = db.query(models.Admin).count()
+        print(f"📊 Found {admin_count} admin(s) in database")
+        
+        if admin_count == 0:
+            print("🔑 No admin found, creating default admin...")
             from .auth import get_password_hash
             admin = models.Admin(
                 username="admin",
@@ -27,7 +32,16 @@ def init_default_data():
                 hashed_password=get_password_hash("admin123")
             )
             db.add(admin)
-            print("✓ Created default admin user")
+            db.commit()
+            # Verify it was created
+            db.refresh(admin)
+            verify_admin = db.query(models.Admin).filter(models.Admin.username == "admin").first()
+            if verify_admin:
+                print("✓ Created default admin user (ID: " + str(verify_admin.id) + ")")
+            else:
+                print("❌ Admin creation failed!")
+        else:
+            print("✓ Admin user already exists")
         
         # Create default sections if none exist
         if db.query(models.Section).count() == 0:
@@ -64,6 +78,7 @@ def init_default_data():
             for section_data in sections_data:
                 section = models.Section(**section_data)
                 db.add(section)
+            db.commit()
             print("✓ Created default sections")
         
         # Create default services if none exist
@@ -79,6 +94,7 @@ def init_default_data():
             for service_data in services_data:
                 service = models.Service(**service_data)
                 db.add(service)
+            db.commit()
             print("✓ Created default services")
         
         # Create default contact info if none exists
@@ -97,9 +113,9 @@ def init_default_data():
                 social_twitter="https://twitter.com/adqdetails"
             )
             db.add(contact)
+            db.commit()
             print("✓ Created default contact info")
         
-        db.commit()
         print("\n✅ Database initialized successfully!")
         print("\n📝 Default Admin Credentials:")
         print("   Username: admin")
@@ -108,6 +124,8 @@ def init_default_data():
         
     except Exception as e:
         print(f"❌ Error initializing database: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
