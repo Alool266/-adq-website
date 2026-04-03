@@ -169,6 +169,37 @@ def reset_admin():
     finally:
         db.close()
 
+@app.get("/debug")
+def debug_info():
+    """Check database path, admin users, and disk status"""
+    import os
+    db = database.SessionLocal()
+    try:
+        admins = db.query(models.Admin).all()
+        admin_info = []
+        for a in admins:
+            admin_info.append({
+                "id": a.id,
+                "username": a.username,
+                "email": a.email,
+                "hash_prefix": a.hashed_password[:20] + "..." if a.hashed_password else None
+            })
+        
+        db_path = database.SQLALCHEMY_DATABASE_URL
+        db_file_exists = os.path.exists(db_path.replace("sqlite:///", ""))
+        
+        return {
+            "database_url": db_path,
+            "db_file_exists": db_file_exists,
+            "admin_count": len(admins),
+            "admins": admin_info,
+            "pwd_context_scheme": "argon2"
+        }
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        db.close()
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
