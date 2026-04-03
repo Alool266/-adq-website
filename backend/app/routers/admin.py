@@ -29,13 +29,36 @@ class Token(BaseModel):
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    print(f"🔐 Login attempt: username={form_data.username}")
     admin = auth.authenticate_admin(db, username=form_data.username, password=form_data.password)
     if not admin:
+        print(f"❌ Login failed for {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    print(f"✅ Login successful for {form_data.username}")
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": admin.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/login-json", response_model=Token)
+def login_json(data: dict, db: Session = Depends(get_db)):
+    """Alternative login endpoint that accepts JSON body"""
+    username = data.get("username", "")
+    password = data.get("password", "")
+    print(f"🔐 Login attempt (JSON): username={username}")
+    admin = auth.authenticate_admin(db, username=username, password=password)
+    if not admin:
+        print(f"❌ Login failed for {username}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+    print(f"✅ Login successful for {username}")
     access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth.create_access_token(
         data={"sub": admin.username}, expires_delta=access_token_expires
