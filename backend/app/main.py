@@ -7,6 +7,9 @@ from .database import engine, get_db
 from .routers import admin, content
 import os
 
+# Ensure data directory exists
+os.makedirs("data", exist_ok=True)
+
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
