@@ -3,19 +3,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Use environment variable for database URL
-# Default to absolute path for Render's mounted disk
-DEFAULT_DB_PATH = "/opt/render/project/src/backend/data/adq_website.db"
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
+# Supabase connection
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://kepyyudsrfhofseownnj.supabase.co")
+SUPABASE_PASSWORD = os.environ.get("SUPABASE_PASSWORD", "sWie0KkZwQ2V231p")
 
-# Handle SQLite-specific settings
-if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-    )
-else:
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Use Supabase PostgreSQL
+SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{SUPABASE_PASSWORD}@db.kepyyudsrfhofseownnj.supabase.co:5432/postgres"
 
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
