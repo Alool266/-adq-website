@@ -9,6 +9,10 @@ import os
 
 app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 
+# Serve frontend build
+if os.path.exists("../frontend/build"):
+    app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="frontend")
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
