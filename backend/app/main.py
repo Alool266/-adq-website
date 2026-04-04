@@ -14,12 +14,9 @@ app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 
-# Serve simple frontend-new at root
-frontend_build = os.path.join(os.path.dirname(__file__), "../../frontend-new")
+# Serve React frontend from build folder
+frontend_build = os.path.join(os.path.dirname(__file__), "../../frontend/build")
 if os.path.exists(frontend_build):
-    # Serve static files first
-    app.mount("/static", StaticFiles(directory=frontend_build), name="static")
-    # Then serve HTML files for /login.html and /dashboard.html
     app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
 
 @app.get("/health")
