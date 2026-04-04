@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -9,27 +10,14 @@ import os
 
 app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 
-# Serve frontend build
+# Include routers FIRST - before static files
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
+app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
+
+# Serve frontend build at root
 frontend_build = os.path.join(os.path.dirname(__file__), "../../frontend/build")
 if os.path.exists(frontend_build):
     app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
-
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Static files for uploaded images
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-# Include routers
-app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
-app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 
 @app.get("/health")
 def health_check():
@@ -145,7 +133,8 @@ def debug_info():
 
 @app.get("/")
 def read_root():
-    return {"message": "ADQ Website Admin API"}
+    # Redirect to frontend
+    return FileResponse(os.path.join(frontend_build, "index.html"))
 
 # Initialize database tables on startup
 @app.on_event("startup")
