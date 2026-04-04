@@ -13,8 +13,11 @@ services:
     envVars:
       - key: SECRET_KEY
         generateValue: true
-      - key: DATABASE_URL
-        value: sqlite:///./data/adq_website.db
+      - key: SUPABASE_URL
+        value: https://kepyyudsrfhofseownnj.supabase.co
+      - key: SUPABASE_PASSWORD
+        value: YOUR_SUPABASE_PASSWORD
+        # Set this in Render dashboard - don't commit passwords!
     disk:
       name: backend-data
       mountPath: /opt/render/project/src/backend/data
