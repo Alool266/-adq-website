@@ -14,31 +14,27 @@ app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 
-# Serve static files (CSS, JS, images) from root
-static_dir = os.path.join(os.path.dirname(__file__), "../..")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# Get the root directory (project root, not backend)
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+# Mount static files at root level so /styles.css, /script.js work
+if os.path.exists(root_dir):
+    # Serve files from root directly
+    @app.get("/styles.css")
+    def serve_css():
+        return FileResponse(os.path.join(root_dir, "styles.css"))
+    
+    @app.get("/script.js")
+    def serve_js():
+        return FileResponse(os.path.join(root_dir, "script.js"))
+    
+    # Serve images directory
+    app.mount("/images", StaticFiles(directory=root_dir), name="images")
 
 # Serve original website at root
-original_frontend = os.path.join(os.path.dirname(__file__), "../../index.html")
-
 @app.get("/")
 def serve_original():
-    return FileResponse(original_frontend)
-
-@app.get("/{path:path}")
-def serve_original_catchall(path: str):
-    # Check if it's a static file request
-    static_paths = ['styles.css', 'script.js']
-    if path in static_paths:
-        file_path = os.path.join(os.path.dirname(__file__), "../../" + path)
-        if os.path.exists(file_path):
-            return FileResponse(file_path)
-    if path.startswith('images/'):
-        file_path = os.path.join(os.path.dirname(__file__), "../../" + path)
-        if os.path.exists(file_path):
-            return FileResponse(file_path)
-    # Otherwise serve the HTML
-    return FileResponse(original_frontend)
+    return FileResponse(os.path.join(root_dir, "index.html"))
 
 # Serve React admin panel at /admin
 react_frontend = os.path.join(os.path.dirname(__file__), "../../frontend/build")
