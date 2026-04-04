@@ -17,32 +17,30 @@ app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 # Get the root directory (project root, not backend)
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-# Serve files from root directly
+# Serve CSS
 @app.get("/styles.css")
 def serve_css():
     return FileResponse(os.path.join(root_dir, "styles.css"))
 
+# Serve JS
 @app.get("/script.js")
 def serve_js():
     return FileResponse(os.path.join(root_dir, "script.js"))
 
-# Serve images directory
-@app.get("/images/{filename}")
-def serve_image(filename: str):
-    image_path = os.path.join(root_dir, "images", filename)
-    if os.path.exists(image_path):
-        return FileResponse(image_path)
-    raise HTTPException(status_code=404, detail="Image not found")
+# Serve images
+@app.get("/images/{path:path}")
+def serve_image(path: str):
+    image_path = os.path.join(root_dir, "images", path)
+    return FileResponse(image_path)
 
 # Serve original website at root
 @app.get("/")
 def serve_original():
     return FileResponse(os.path.join(root_dir, "index.html"))
 
-# Serve React admin panel at /admin
-react_frontend = os.path.join(os.path.dirname(__file__), "../../frontend/build")
-if os.path.exists(react_frontend):
-    app.mount("/admin", StaticFiles(directory=react_frontend, html=True), name="admin")
+# Serve simple admin panel at /admin
+admin_dir = os.path.join(root_dir, "frontend-new")
+app.mount("/admin", StaticFiles(directory=admin_dir, html=True), name="admin")
 
 @app.get("/health")
 def health_check():
