@@ -81,7 +81,7 @@ async def startup_seed():
         if projects_count == 0:
             print("🔧 Seeding projects...")
             for p in [("فيلا سكنية", "Residential Villa", "3d"), ("مبنى تجاري", "Commercial Building", "construction"), ("شقة فاخرة", "Luxury Apartment", "finished")]:
-                db.add(models.Project(title_ar=p[0], title_en=p[1], category=p[2], is_active=True))
+                db.add(models.Project(title_ar=p[0], title_en=p[1], category=p[2], image_url="", is_active=True))
         
         db.commit()
         print("✅ Database ready!")
@@ -113,7 +113,7 @@ def seed_database():
             for s in [("تصاميم ثلاثية الأبعاد", "3D Designs", 1), ("تحت البناء", "Under Construction", 2), ("مشاريع منجزة", "Finished Projects", 3)]:
                 db.add(models.Service(title_ar=s[0], title_en=s[1], order=s[2], is_active=True))
             for p in [("فيلا سكنية", "Residential Villa", "3d"), ("مبنى تجاري", "Commercial Building", "construction"), ("شقة فاخرة", "Luxury Apartment", "finished")]:
-                db.add(models.Project(title_ar=p[0], title_en=p[1], category=p[2], is_active=True))
+                db.add(models.Project(title_ar=p[0], title_en=p[1], category=p[2], image_url="", is_active=True))
             db.commit()
             return {"status": "Database seeded!"}
         return {"status": "Already seeded"}
