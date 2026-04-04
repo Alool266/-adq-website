@@ -50,7 +50,7 @@ def health_check():
 @app.on_event("startup")
 async def startup_seed():
     from .database import SessionLocal
-    import models
+    from . import models
     db = SessionLocal()
     try:
         print("🔧 Checking database content...")
@@ -95,7 +95,7 @@ async def startup_seed():
 def seed_database():
     """Visit this to manually seed the database"""
     from .database import SessionLocal
-    import models
+    from . import models
     db = SessionLocal()
     try:
         # Check if we need to seed
@@ -126,11 +126,12 @@ def seed_database():
 @app.get("/setup")
 def setup_admin():
     """Visit this endpoint to create admin user if it doesn't exist"""
+    from . import database, models
+    from .auth import get_password_hash
     db = database.SessionLocal()
     try:
         admin = db.query(models.Admin).first()
         if not admin:
-            from .auth import get_password_hash
             admin = models.Admin(
                 username="admin",
                 email="admin@adq.com",
@@ -149,9 +150,10 @@ def setup_admin():
 @app.get("/reset-admin")
 def reset_admin():
     """Visit this endpoint to DELETE and RECREATE admin with argon2 hash"""
+    from . import database, models
+    from .auth import get_password_hash
     db = database.SessionLocal()
     try:
-        from .auth import get_password_hash
         # Delete ALL existing admins
         db.query(models.Admin).delete()
         db.commit()
@@ -173,13 +175,13 @@ def reset_admin():
 @app.get("/test-password")
 def test_password():
     """Test if password verification works"""
+    from . import database, models
+    from .auth import verify_password, get_password_hash
     db = database.SessionLocal()
     try:
         admin = db.query(models.Admin).filter(models.Admin.username == "admin").first()
         if not admin:
             return {"error": "Admin not found"}
-
-        from .auth import verify_password, get_password_hash
 
         # Test the password
         password = "admin123"
@@ -191,11 +193,8 @@ def test_password():
 
         return {
             "username": admin.username,
-            "stored_hash": admin.hashed_password[:50] + "...",
-            "test_password": password,
-            "password_valid": is_valid,
-            "new_hash_works": new_hash_valid,
-            "pwd_context_scheme": "argon2"
+            "current_hash_valid": is_valid,
+            "new_hash_works": new_hash_valid
         }
     except Exception as e:
         import traceback
@@ -206,6 +205,7 @@ def test_password():
 @app.get("/debug")
 def debug_info():
     """Check database path, admin users, and disk status"""
+    from . import database, models
     db = database.SessionLocal()
     try:
         admins = db.query(models.Admin).all()
@@ -239,8 +239,10 @@ def read_root():
 # Initialize database tables on startup
 @app.on_event("startup")
 def startup_event():
+    from . import database, models
+    from .auth import get_password_hash
     try:
-        models.Base.metadata.create_all(bind=engine)
+        models.Base.metadata.create_all(bind=database.engine)
         print("✅ Database tables created successfully")
         
         # Create admin user if not exists
@@ -248,7 +250,6 @@ def startup_event():
         try:
             admin = db.query(models.Admin).first()
             if not admin:
-                from .auth import get_password_hash
                 admin = models.Admin(
                     username="admin",
                     email="admin@adq.com",
