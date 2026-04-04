@@ -16,6 +16,51 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+    // Dynamic content from API
+    const API = '/api/v1/content';
+    async function loadDynamicContent() {
+      try {
+        // Load sections
+        const sections = await fetch(API + '/sections').then(r => r.json());
+        const contact = await fetch(API + '/contact').then(r => r.json());
+        const services = await fetch(API + '/services').then(r => r.json());
+        const projects = await fetch(API + '/projects').then(r => r.json());
+        
+        // Update hero if exists
+        const hero = sections.find(s => s.section_key === 'hero');
+        if (hero) {
+          document.querySelectorAll('.hero-title').forEach(el => el.innerHTML = hero.title_ar || hero.title_en || '');
+          document.querySelectorAll('.hero-subtitle').forEach(el => el.innerHTML = hero.subtitle_ar || hero.subtitle_en || '');
+        }
+        
+        // Update about
+        const about = sections.find(s => s.section_key === 'about');
+        if (about) {
+          document.querySelectorAll('.about-text').forEach(el => el.innerHTML = about.content_ar || about.content_en || '');
+        }
+        
+        // Update services
+        const servicesSection = sections.find(s => s.section_key === 'services');
+        if (servicesSection) {
+          document.querySelectorAll('.services-title').forEach(el => el.innerHTML = servicesSection.title_ar || servicesSection.title_en || '');
+        }
+        
+        // Update contact info
+        if (contact) {
+          document.querySelectorAll('.contact-phone').forEach(el => el.textContent = contact.phone || '');
+          document.querySelectorAll('.contact-whatsapp').forEach(el => el.textContent = contact.whatsapp || '');
+          document.querySelectorAll('.contact-email').forEach(el => el.textContent = contact.email || '');
+          document.querySelectorAll('.contact-location').forEach(el => el.textContent = contact.location_ar || contact.location_en || '');
+        }
+        
+        console.log('Content loaded from API');
+      } catch(e) {
+        console.log('Using static content');
+      }
+    }
+    loadDynamicContent();
+    </script>
 </head>
 <body>
     <!-- Header - Transparent Over Hero -->
