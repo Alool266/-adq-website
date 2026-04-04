@@ -250,6 +250,7 @@ def update_project(project_id: int, project_data: ProjectUpdate, db: Session = D
         raise HTTPException(status_code=404, detail="Project not found")
     for field, value in project_data.model_dump(exclude_unset=True).items():
         setattr(project, field, value)
+    project.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(project)
     return project
