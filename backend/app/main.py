@@ -17,19 +17,22 @@ app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 # Get the root directory (project root, not backend)
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-# Mount static files at root level so /styles.css, /script.js work
-if os.path.exists(root_dir):
-    # Serve files from root directly
-    @app.get("/styles.css")
-    def serve_css():
-        return FileResponse(os.path.join(root_dir, "styles.css"))
-    
-    @app.get("/script.js")
-    def serve_js():
-        return FileResponse(os.path.join(root_dir, "script.js"))
-    
-    # Serve images directory
-    app.mount("/images", StaticFiles(directory=root_dir), name="images")
+# Serve files from root directly
+@app.get("/styles.css")
+def serve_css():
+    return FileResponse(os.path.join(root_dir, "styles.css"))
+
+@app.get("/script.js")
+def serve_js():
+    return FileResponse(os.path.join(root_dir, "script.js"))
+
+# Serve images directory
+@app.get("/images/{filename}")
+def serve_image(filename: str):
+    image_path = os.path.join(root_dir, "images", filename)
+    if os.path.exists(image_path):
+        return FileResponse(image_path)
+    raise HTTPException(status_code=404, detail="Image not found")
 
 # Serve original website at root
 @app.get("/")
