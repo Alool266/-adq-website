@@ -53,6 +53,7 @@ class Project(Base):
     is_active = Column(Boolean, default=True)
     order = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Service(Base):
     __tablename__ = "services"

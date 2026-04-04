@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { contentAPI } from '../services/api';
+import { API_BASE } from '../services/api';
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('hero');
@@ -193,7 +194,7 @@ const DashboardPage = () => {
                 onChange={(e) => handleImageUpload(e, 'hero', 'image_url')}
               />
               {getSectionByKey('hero')?.image_url && (
-                <img src={`http://localhost:8001${getSectionByKey('hero').image_url}`} alt="Hero" className="preview-image" />
+                <img src={`${API_BASE}${getSectionByKey('hero').image_url}`} alt="Hero" className="preview-image" />
               )}
             </div>
           </div>
@@ -242,7 +243,7 @@ const DashboardPage = () => {
                 onChange={(e) => handleImageUpload(e, 'about', 'image_url')}
               />
               {getSectionByKey('about')?.image_url && (
-                <img src={`http://localhost:8001${getSectionByKey('about').image_url}`} alt="About" className="preview-image" />
+                <img src={`${API_BASE}${getSectionByKey('about').image_url}`} alt="About" className="preview-image" />
               )}
             </div>
           </div>
@@ -294,7 +295,7 @@ const DashboardPage = () => {
                       onChange={(e) => handleServiceImageUpload(e, service.id)}
                     />
                     {service.image_url && (
-                      <img src={`http://localhost:8001${service.image_url}`} alt={service.title_en} className="preview-image-small" />
+                      <img src={`${API_BASE}${service.image_url}`} alt={service.title_en} className="preview-image-small" />
                     )}
                   </div>
                 </div>
@@ -344,7 +345,7 @@ const DashboardPage = () => {
                       onChange={(e) => handleProjectImageUpload(e, project.id)}
                     />
                     {project.image_url && (
-                      <img src={`http://localhost:8001${project.image_url}`} alt={project.title_en} className="preview-image-small" />
+                      <img src={`${API_BASE}${project.image_url}`} alt={project.title_en} className="preview-image-small" />
                     )}
                   </div>
                 </div>
