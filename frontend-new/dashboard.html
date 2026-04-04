@@ -23,6 +23,11 @@
     button { padding: 15px 30px; background: #1a1a2e; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
     button:hover { background: #16213e; }
     .success { color: #27ae60; margin-bottom: 15px; display: none; }
+    .service-item, .project-item { background: #f5f5f5; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; }
+    .service-item input, .project-item input { padding: 8px; }
+    .service-item { grid-template-columns: 1fr 1fr auto; }
+    .project-item { grid-template-columns: 1fr 1fr 2fr 1fr auto; }
+    @media(max-width: 768px) { .service-item, .project-item { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -95,7 +100,31 @@
           <label>WhatsApp</label>
           <input type="text" id="contactWhatsapp">
         </div>
+        <div class="form-group">
+          <label>Location (Arabic)</label>
+          <input type="text" id="contactLocationAr">
+        </div>
+        <div class="form-group">
+          <label>Location (English)</label>
+          <input type="text" id="contactLocationEn">
+        </div>
         <button onclick="saveContact()">Save Contact</button>
+      </div>
+      
+      <!-- Services Page -->
+      <div id="servicesPage" style="display:none">
+        <h2>Services</h2>
+        <div id="servicesList"></div>
+        <button onclick="addService()" style="margin-top:15px;background:#27ae60;">+ Add Service</button>
+        <button onclick="saveServices()" style="margin-top:15px;">Save All</button>
+      </div>
+      
+      <!-- Projects Page -->
+      <div id="projectsPage" style="display:none">
+        <h2>Projects</h2>
+        <div id="projectsList"></div>
+        <button onclick="addProject()" style="margin-top:15px;background:#27ae60;">+ Add Project</button>
+        <button onclick="saveProjects()" style="margin-top:15px;">Save All</button>
       </div>
     </div>
   </div>
@@ -104,22 +133,24 @@
     const API_URL = '/api/v1';
     let token = localStorage.getItem('admin_token');
     
-    if (!token) { window.location.href = '/login.html'; }
+    if (!token) { window.location.href = '/admin/login.html'; }
     
     function logout() {
       localStorage.removeItem('admin_token');
-      window.location.href = '/login.html';
+      window.location.href = '/admin/login.html';
     }
     
     // Navigation
-    const pages = ['hero', 'about', 'contact'];
+    const pages = ['hero', 'about', 'contact', 'services', 'projects'];
     document.querySelectorAll('.sidebar li').forEach(li => {
       li.addEventListener('click', () => {
         document.querySelectorAll('.sidebar li').forEach(l => l.classList.remove('active'));
         li.classList.add('active');
-        pages.forEach(p => document.getElementById(p + 'Page').style.display = 'none');
+        pages.forEach(p => {
+          const el = document.getElementById(p + 'Page');
+          if(el) el.style.display = 'none';
+        });
         const page = li.dataset.page;
-        if (page === 'services' || page === 'projects') return;
         document.getElementById(page + 'Page').style.display = 'block';
         document.getElementById('pageTitle').textContent = li.textContent;
         loadData(page);
@@ -127,22 +158,27 @@
     });
     
     async function api(endpoint, method = 'GET', body = null) {
-      const res = await fetch(API_URL + endpoint, {
-        method,
-        headers: { 
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: body ? JSON.stringify(body) : null
-      });
-      if (res.status === 401) logout();
-      return res.json();
+      try {
+        const res = await fetch(API_URL + endpoint, {
+          method,
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: body ? JSON.stringify(body) : null
+        });
+        if (res.status === 401) logout();
+        return await res.json();
+      } catch(e) {
+        console.error(e);
+        return null;
+      }
     }
     
     async function loadData(page) {
       if (page === 'hero') {
         const data = await api('/content/sections/hero');
-        if (data) {
+        if (data && data.id) {
           document.getElementById('heroTitleAr').value = data.title_ar || '';
           document.getElementById('heroTitleEn').value = data.title_en || '';
           document.getElementById('heroSubtitleAr').value = data.subtitle_ar || '';
@@ -150,7 +186,7 @@
         }
       } else if (page === 'about') {
         const data = await api('/content/sections/about');
-        if (data) {
+        if (data && data.id) {
           document.getElementById('aboutTitleAr').value = data.title_ar || '';
           document.getElementById('aboutTitleEn').value = data.title_en || '';
           document.getElementById('aboutContentAr').value = data.content_ar || '';
@@ -158,11 +194,39 @@
         }
       } else if (page === 'contact') {
         const data = await api('/content/contact');
-        if (data) {
+        if (data && data.id) {
           document.getElementById('contactPhone').value = data.phone || '';
           document.getElementById('contactEmail').value = data.email || '';
           document.getElementById('contactWhatsapp').value = data.whatsapp || '';
+          document.getElementById('contactLocationAr').value = data.location_ar || '';
+          document.getElementById('contactLocationEn').value = data.location_en || '';
         }
+      } else if (page === 'services') {
+        const data = await api('/content/services');
+        const list = document.getElementById('servicesList');
+        list.innerHTML = data.map(s => `
+          <div class="service-item">
+            <input type="text" placeholder="Title Arabic" value="${s.title_ar || ''}" data-id="${s.id}" data-field="title_ar">
+            <input type="text" placeholder="Title English" value="${s.title_en || ''}" data-id="${s.id}" data-field="title_en">
+            <button onclick="deleteService(${s.id})" style="background:#e74c3c;width:auto;padding:10px;">Delete</button>
+          </div>
+        `).join('');
+      } else if (page === 'projects') {
+        const data = await api('/content/projects');
+        const list = document.getElementById('projectsList');
+        list.innerHTML = data.map(p => `
+          <div class="project-item">
+            <input type="text" placeholder="Title Arabic" value="${p.title_ar || ''}" data-id="${p.id}" data-field="title_ar">
+            <input type="text" placeholder="Title English" value="${p.title_en || ''}" data-id="${p.id}" data-field="title_en">
+            <input type="text" placeholder="Image URL" value="${p.image_url || ''}" data-id="${p.id}" data-field="image_url">
+            <select data-id="${p.id}" data-field="category">
+              <option value="3d" ${p.category === '3d' ? 'selected' : ''}>3D Design</option>
+              <option value="construction" ${p.category === 'construction' ? 'selected' : ''}>Under Construction</option>
+              <option value="finished" ${p.category === 'finished' ? 'selected' : ''}>Finished</option>
+            </select>
+            <button onclick="deleteProject(${p.id})" style="background:#e74c3c;width:auto;padding:10px;">Delete</button>
+          </div>
+        `).join('');
       }
     }
     
@@ -175,18 +239,78 @@
         content_ar: document.getElementById(key + 'ContentAr')?.value || '',
         content_en: document.getElementById(key + 'ContentEn')?.value || ''
       };
-      await api('/content/sections/' + key, 'PUT', data);
-      document.getElementById('success').style.display = 'block';
+      const result = await api('/content/sections/' + key, 'PUT', data);
+      if (result) {
+        document.getElementById('success').style.display = 'block';
+        setTimeout(() => document.getElementById('success').style.display = 'none', 2000);
+      }
     }
     
     async function saveContact() {
       const data = {
         phone: document.getElementById('contactPhone').value,
         email: document.getElementById('contactEmail').value,
-        whatsapp: document.getElementById('contactWhatsapp').value
+        whatsapp: document.getElementById('contactWhatsapp').value,
+        location_ar: document.getElementById('contactLocationAr').value,
+        location_en: document.getElementById('contactLocationEn').value
       };
-      await api('/content/contact', 'PUT', data);
+      const result = await api('/content/contact', 'PUT', data);
+      if (result) {
+        document.getElementById('success').style.display = 'block';
+        setTimeout(() => document.getElementById('success').style.display = 'none', 2000);
+      }
+    }
+    
+    async function saveServices() {
+      document.querySelectorAll('#servicesList .service-item').forEach(async item => {
+        const id = item.querySelector('input').dataset.id;
+        const data = {
+          title_ar: item.querySelector('[data-field="title_ar"]').value,
+          title_en: item.querySelector('[data-field="title_en"]').value
+        };
+        await api('/content/services/' + id, 'PUT', data);
+      });
       document.getElementById('success').style.display = 'block';
+      setTimeout(() => document.getElementById('success').style.display = 'none', 2000);
+    }
+    
+    async function addService() {
+      await api('/content/services', 'POST', { title_ar: 'New Service', title_en: 'New Service', order: 99 });
+      loadData('services');
+    }
+    
+    async function deleteService(id) {
+      if(confirm('Delete this service?')) {
+        await api('/content/services/' + id, 'DELETE');
+        loadData('services');
+      }
+    }
+    
+    async function saveProjects() {
+      document.querySelectorAll('#projectsList .project-item').forEach(async item => {
+        const id = item.querySelector('input').dataset.id;
+        const data = {
+          title_ar: item.querySelector('[data-field="title_ar"]').value,
+          title_en: item.querySelector('[data-field="title_en"]').value,
+          image_url: item.querySelector('[data-field="image_url"]').value,
+          category: item.querySelector('select').value
+        };
+        await api('/content/projects/' + id, 'PUT', data);
+      });
+      document.getElementById('success').style.display = 'block';
+      setTimeout(() => document.getElementById('success').style.display = 'none', 2000);
+    }
+    
+    async function addProject() {
+      await api('/content/projects', 'POST', { title_ar: 'New Project', title_en: 'New Project', category: '3d', image_url: '' });
+      loadData('projects');
+    }
+    
+    async function deleteProject(id) {
+      if(confirm('Delete this project?')) {
+        await api('/content/projects/' + id, 'DELETE');
+        loadData('projects');
+      }
     }
     
     loadData('hero');
