@@ -142,6 +142,27 @@ def startup_event():
     try:
         models.Base.metadata.create_all(bind=engine)
         print("✅ Database tables created successfully")
+        
+        # Create admin user if not exists
+        db = database.SessionLocal()
+        try:
+            admin = db.query(models.Admin).first()
+            if not admin:
+                from .auth import get_password_hash
+                admin = models.Admin(
+                    username="admin",
+                    email="admin@adq.com",
+                    hashed_password=get_password_hash("admin123")
+                )
+                db.add(admin)
+                db.commit()
+                print("✅ Admin user created in startup!")
+            else:
+                print("✅ Admin user already exists in startup")
+        except Exception as e:
+            print(f"❌ Error creating admin: {e}")
+        finally:
+            db.close()
     except Exception as e:
         print(f"❌ Error creating tables: {e}")
         import traceback
