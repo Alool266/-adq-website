@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADQ Admin - Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; display: flex; min-height: 100vh; }
+    .sidebar { width: 250px; background: #1a1a2e; color: #fff; padding: 20px; }
+    .sidebar h2 { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
+    .sidebar ul { list-style: none; }
+    .sidebar li { padding: 15px; cursor: pointer; border-radius: 5px; margin-bottom: 5px; }
+    .sidebar li:hover, .sidebar li.active { background: #16213e; }
+    .logout { margin-top: 50px; background: #e74c3c; }
+    .main { flex: 1; padding: 40px; background: #f5f5f5; }
+    .content { background: #fff; padding: 30px; border-radius: 10px; }
+    h1 { margin-bottom: 20px; color: #1a1a2e; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+    input, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
+    textarea { min-height: 100px; }
+    button { padding: 15px 30px; background: #1a1a2e; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #16213e; }
+    .success { color: #27ae60; margin-bottom: 15px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>ADQ Admin</h2>
+    <ul>
+      <li class="active" data-page="hero">Hero Section</li>
+      <li data-page="about">About Section</li>
+      <li data-page="services">Services</li>
+      <li data-page="projects">Projects</li>
+      <li data-page="contact">Contact Info</li>
+    </ul>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+  <div class="main">
+    <div class="content">
+      <h1 id="pageTitle">Hero Section</h1>
+      <div class="success" id="success">Saved successfully!</div>
+      
+      <div id="heroPage">
+        <div class="form-group">
+          <label>Title (Arabic)</label>
+          <textarea id="heroTitleAr"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Title (English)</label>
+          <textarea id="heroTitleEn"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Subtitle (Arabic)</label>
+          <textarea id="heroSubtitleAr"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Subtitle (English)</label>
+          <textarea id="heroSubtitleEn"></textarea>
+        </div>
+        <button onclick="saveSection('hero')">Save Hero</button>
+      </div>
+      
+      <div id="aboutPage" style="display:none">
+        <div class="form-group">
+          <label>Title (Arabic)</label>
+          <input type="text" id="aboutTitleAr">
+        </div>
+        <div class="form-group">
+          <label>Title (English)</label>
+          <input type="text" id="aboutTitleEn">
+        </div>
+        <div class="form-group">
+          <label>Content (Arabic)</label>
+          <textarea id="aboutContentAr"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Content (English)</label>
+          <textarea id="aboutContentEn"></textarea>
+        </div>
+        <button onclick="saveSection('about')">Save About</button>
+      </div>
+      
+      <div id="contactPage" style="display:none">
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" id="contactPhone">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="text" id="contactEmail">
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="text" id="contactWhatsapp">
+        </div>
+        <button onclick="saveContact()">Save Contact</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const API_URL = '/api/v1';
+    let token = localStorage.getItem('admin_token');
+    
+    if (!token) { window.location.href = '/login.html'; }
+    
+    function logout() {
+      localStorage.removeItem('admin_token');
+      window.location.href = '/login.html';
+    }
+    
+    // Navigation
+    const pages = ['hero', 'about', 'contact'];
+    document.querySelectorAll('.sidebar li').forEach(li => {
+      li.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar li').forEach(l => l.classList.remove('active'));
+        li.classList.add('active');
+        pages.forEach(p => document.getElementById(p + 'Page').style.display = 'none');
+        const page = li.dataset.page;
+        if (page === 'services' || page === 'projects') return;
+        document.getElementById(page + 'Page').style.display = 'block';
+        document.getElementById('pageTitle').textContent = li.textContent;
+        loadData(page);
+      });
+    });
+    
+    async function api(endpoint, method = 'GET', body = null) {
+      const res = await fetch(API_URL + endpoint, {
+        method,
+        headers: { 
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: body ? JSON.stringify(body) : null
+      });
+      if (res.status === 401) logout();
+      return res.json();
+    }
+    
+    async function loadData(page) {
+      if (page === 'hero') {
+        const data = await api('/content/sections/hero');
+        if (data) {
+          document.getElementById('heroTitleAr').value = data.title_ar || '';
+          document.getElementById('heroTitleEn').value = data.title_en || '';
+          document.getElementById('heroSubtitleAr').value = data.subtitle_ar || '';
+          document.getElementById('heroSubtitleEn').value = data.subtitle_en || '';
+        }
+      } else if (page === 'about') {
+        const data = await api('/content/sections/about');
+        if (data) {
+          document.getElementById('aboutTitleAr').value = data.title_ar || '';
+          document.getElementById('aboutTitleEn').value = data.title_en || '';
+          document.getElementById('aboutContentAr').value = data.content_ar || '';
+          document.getElementById('aboutContentEn').value = data.content_en || '';
+        }
+      } else if (page === 'contact') {
+        const data = await api('/content/contact');
+        if (data) {
+          document.getElementById('contactPhone').value = data.phone || '';
+          document.getElementById('contactEmail').value = data.email || '';
+          document.getElementById('contactWhatsapp').value = data.whatsapp || '';
+        }
+      }
+    }
+    
+    async function saveSection(key) {
+      const data = {
+        title_ar: document.getElementById(key + 'TitleAr').value,
+        title_en: document.getElementById(key + 'TitleEn').value,
+        subtitle_ar: document.getElementById(key + 'SubtitleAr')?.value || '',
+        subtitle_en: document.getElementById(key + 'SubtitleEn')?.value || '',
+        content_ar: document.getElementById(key + 'ContentAr')?.value || '',
+        content_en: document.getElementById(key + 'ContentEn')?.value || ''
+      };
+      await api('/content/sections/' + key, 'PUT', data);
+      document.getElementById('success').style.display = 'block';
+    }
+    
+    async function saveContact() {
+      const data = {
+        phone: document.getElementById('contactPhone').value,
+        email: document.getElementById('contactEmail').value,
+        whatsapp: document.getElementById('contactWhatsapp').value
+      };
+      await api('/content/contact', 'PUT', data);
+      document.getElementById('success').style.display = 'block';
+    }
+    
+    loadData('hero');
+  </script>
+</body>
+</html>
