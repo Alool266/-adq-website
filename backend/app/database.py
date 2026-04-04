@@ -5,7 +5,7 @@ import os
 
 # Supabase connection
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://kepyyudsrfhofseownnj.supabase.co")
-SUPABASE_PASSWORD = os.environ.get("SUPABASE_PASSWORD", "sWie0KkZwQ2V231p")
+SUPABASE_PASSWORD = os.environ.get("SUPABASE_PASSWORD", "YOUR_PASSWORD_HERE")
 
 # Use Supabase PostgreSQL with correct connection string format
 # Supabase uses: postgresql://postgres.[PROJECT_REF].[REGION].pooler.supabase.com:6543/postgres
