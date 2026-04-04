@@ -46,6 +46,43 @@ app.mount("/admin", StaticFiles(directory=admin_dir, html=True), name="admin")
 def health_check():
     return {"status": "healthy", "message": "Backend is running"}
 
+# Auto-seed database on startup
+@app.on_event("startup")
+def startup_seed():
+    from .database import SessionLocal
+    import models
+    db = SessionLocal()
+    try:
+        # Check if we need to seed
+        hero = db.query(models.Section).filter_by(section_key="hero").first()
+        if not hero:
+            print("🔧 Seeding initial content...")
+            # Hero
+            hero = models.Section(section_key="hero", title_ar="التفاصيل المعمارية للمشاريع", title_en="Architectural Details of Projects", subtitle_ar="تصاميم ثلاثية الأبعاد | بناء | تشطيب", subtitle_en="3D Designs | Construction | Finishing", is_active=True, order=1)
+            db.add(hero)
+            # About
+            about = models.Section(section_key="about", title_ar="من نحن", title_en="About Us", content_ar="نحن متخصصون في تقديم حلول معمارية متكاملة", content_en="We specialize in comprehensive architectural solutions", is_active=True, order=2)
+            db.add(about)
+            # Services
+            services = models.Section(section_key="services", title_ar="خدماتنا", title_en="Our Services", content_ar="تصاميم ثلاثية الأبعاد - بناء - تشطيبات", content_en="3D Designs - Construction - Finishing", is_active=True, order=3)
+            db.add(services)
+            # Contact
+            contact = models.ContactInfo(phone="+966500000000", whatsapp="+966500000000", email="info@adqdetails.com", location_ar="الرياض", location_en="Riyadh")
+            db.add(contact)
+            # Services
+            for s in [("تصاميم ثلاثية الأبعاد", "3D Designs", 1), ("تحت البناء", "Under Construction", 2), ("مشاريع منجزة", "Finished Projects", 3)]:
+                db.add(models.Service(title_ar=s[0], title_en=s[1], order=s[2], is_active=True))
+            # Projects
+            for p in [("فيلا سكنية", "Residential Villa", "3d"), ("مبنى تجاري", "Commercial Building", "construction"), ("شقة فاخرة", "Luxury Apartment", "finished")]:
+                db.add(models.Project(title_ar=p[0], title_en=p[1], category=p[2], is_active=True))
+            db.commit()
+            print("✅ Database seeded!")
+    except Exception as e:
+        print(f"Seed error: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 @app.get("/setup")
 def setup_admin():
     """Visit this endpoint to create admin user if it doesn't exist"""
