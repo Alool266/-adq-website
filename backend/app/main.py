@@ -14,15 +14,21 @@ app = FastAPI(title="ADQ Website Admin API", version="1.0.0")
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 
-# Serve React frontend from public folder
-frontend_build = os.path.join(os.path.dirname(__file__), "../../public")
-if os.path.exists(frontend_build):
-    app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
-else:
-    # Fallback to frontend/build
-    frontend_build = os.path.join(os.path.dirname(__file__), "../../frontend/build")
-    if os.path.exists(frontend_build):
-        app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
+# Serve original website at root
+original_frontend = os.path.join(os.path.dirname(__file__), "../../index.html")
+if os.path.exists(original_frontend):
+    @app.get("/")
+    def serve_original():
+        return FileResponse(original_frontend)
+    
+    @app.get("/{path:path}")
+    def serve_original_catchall(path: str):
+        return FileResponse(original_frontend)
+
+# Serve React admin panel at /admin
+react_frontend = os.path.join(os.path.dirname(__file__), "../../frontend/build")
+if os.path.exists(react_frontend):
+    app.mount("/admin", StaticFiles(directory=react_frontend, html=True), name="admin")
 
 @app.get("/health")
 def health_check():
