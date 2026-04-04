@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADQ - 3D Designs & Construction</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; line-height: 1.6; }
+    header { background: #1a1a2e; color: #fff; padding: 20px; text-align: center; }
+    header h1 { font-size: 2.5em; }
+    section { padding: 60px 20px; max-width: 1200px; margin: 0 auto; }
+    .hero { background: #f5f5f5; text-align: center; }
+    .hero h2 { font-size: 2em; color: #1a1a2e; margin-bottom: 20px; }
+    .hero p { font-size: 1.2em; color: #666; }
+    .contact { background: #1a1a2e; color: #fff; text-align: center; }
+    .contact h2 { margin-bottom: 30px; }
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .contact-card { background: #16213e; padding: 20px; border-radius: 10px; }
+    .contact-card h3 { margin-bottom: 10px; color: #e94560; }
+    .contact-card p { margin: 5px 0; }
+    footer { background: #0f0f23; color: #fff; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ADQ</h1>
+    <p>3D Designs & Construction</p>
+  </header>
+  
+  <section class="hero">
+    <h2 id="heroTitle">Welcome to ADQ</h2>
+    <p id="heroSubtitle">Professional 3D designs and construction services</p>
+  </section>
+  
+  <section id="about">
+    <h2 id="aboutTitle">About Us</h2>
+    <p id="aboutContent">We specialize in creating stunning 3D designs and providing top-quality construction services.</p>
+  </section>
+  
+  <section class="contact">
+    <h2>Contact Us</h2>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <h3>Phone</h3>
+        <p id="contactPhone">Loading...</p>
+      </div>
+      <div class="contact-card">
+        <h3>WhatsApp</h3>
+        <p id="contactWhatsapp">Loading...</p>
+      </div>
+      <div class="contact-card">
+        <h3>Email</h3>
+        <p id="contactEmail">Loading...</p>
+      </div>
+    </div>
+    <div style="margin-top: 30px;">
+      <h3>Location</h3>
+      <p id="contactLocation">Loading...</p>
+    </div>
+  </section>
+  
+  <footer>
+    <p>&copy; 2024 ADQ - 3D Designs & Construction</p>
+  </footer>
+  
+  <script>
+    const API_URL = '/api/v1';
+    
+    async function loadContent() {
+      try {
+        // Load sections
+        const [heroRes, aboutRes, contactRes] = await Promise.all([
+          fetch(API_URL + '/content/sections/hero'),
+          fetch(API_URL + '/content/sections/about'),
+          fetch(API_URL + '/content/contact')
+        ]);
+        
+        const hero = await heroRes.json();
+        const about = await aboutRes.json();
+        const contact = await contactRes.json();
+        
+        // Update hero
+        if (hero.title_en) document.getElementById('heroTitle').textContent = hero.title_en;
+        if (hero.subtitle_en) document.getElementById('heroSubtitle').textContent = hero.subtitle_en;
+        
+        // Update about
+        if (about.title_en) document.getElementById('aboutTitle').textContent = about.title_en;
+        if (about.content_en) document.getElementById('aboutContent').textContent = about.content_en;
+        
+        // Update contact
+        if (contact.phone) document.getElementById('contactPhone').textContent = contact.phone;
+        if (contact.whatsapp) document.getElementById('contactWhatsapp').textContent = contact.whatsapp;
+        if (contact.email) document.getElementById('contactEmail').textContent = contact.email;
+        if (contact.location_en) document.getElementById('contactLocation').textContent = contact.location_en;
+        
+      } catch (err) {
+        console.error('Error loading content:', err);
+      }
+    }
+    
+    loadContent();
+  </script>
+</body>
+</html>

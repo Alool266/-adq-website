@@ -17,6 +17,9 @@ app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
 # Serve simple frontend-new at root
 frontend_build = os.path.join(os.path.dirname(__file__), "../../frontend-new")
 if os.path.exists(frontend_build):
+    # Serve static files first
+    app.mount("/static", StaticFiles(directory=frontend_build), name="static")
+    # Then serve HTML files for /login.html and /dashboard.html
     app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
 
 @app.get("/health")
