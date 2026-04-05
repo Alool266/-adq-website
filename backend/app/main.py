@@ -54,10 +54,11 @@ def startup_seed():
     from .auth import get_password_hash
     db = SessionLocal()
     try:
-        print("🔧 Checking database content...")
+        print("🔧 Starting up...")
         
-        # Create tables
+        # Create tables first
         models.Base.metadata.create_all(bind=db.get_bind())
+        print("✅ Tables created")
         
         # Create admin user if not exists
         admin = db.query(models.Admin).first()
@@ -68,41 +69,78 @@ def startup_seed():
                 hashed_password=get_password_hash("admin123")
             )
             db.add(admin)
-            print("✅ Admin user created!")
+            print("✅ Admin created")
         
-        # Always try to add default content if not exists
+        # Seed sections
         hero = db.query(models.Section).filter_by(section_key="hero").first()
         if not hero:
-            print("🔧 Seeding sections...")
-            hero = models.Section(section_key="hero", title_ar="التفاصيل المعمارية للمشاريع", title_en="Architectural Details of Projects", subtitle_ar="تصاميم ثلاثية الأبعاد | بناء | تشطيب", subtitle_en="3D Designs | Construction | Finishing", is_active=True, order=1)
+            hero = models.Section(
+                section_key="hero", 
+                title_ar="التفاصيل المعمارية للمشاريع", 
+                title_en="Architectural Details of Projects", 
+                subtitle_ar="تصاميم ثلاثية الأبعاد | بناء | تشطيب", 
+                subtitle_en="3D Designs | Construction | Finishing", 
+                is_active=True, 
+                order=1
+            )
             db.add(hero)
-            about = models.Section(section_key="about", title_ar="من نحن", title_en="About Us", content_ar="نحن متخصصون في تقديم حلول معمارية متكاملة", content_en="We specialize in comprehensive architectural solutions", is_active=True, order=2)
+            
+            about = models.Section(
+                section_key="about", 
+                title_ar="من نحن", 
+                title_en="About Us", 
+                content_ar="نحن متخصصون في تقديم حلول معمارية متكاملة", 
+                content_en="We specialize in comprehensive architectural solutions", 
+                is_active=True, 
+                order=2
+            )
             db.add(about)
-            services = models.Section(section_key="services", title_ar="خدماتنا", title_en="Our Services", content_ar="تصاميم ثلاثية الأبعاد - بناء - تشطيبات", content_en="3D Designs - Construction - Finishing", is_active=True, order=3)
-            db.add(services)
+            
+            services_section = models.Section(
+                section_key="services", 
+                title_ar="خدماتنا", 
+                title_en="Our Services", 
+                content_ar="تصاميم ثلاثية الأبعاد - بناء - تشطيبات", 
+                content_en="3D Designs - Construction - Finishing", 
+                is_active=True, 
+                order=3
+            )
+            db.add(services_section)
+            print("✅ Sections seeded")
         
+        # Seed contact
         contact = db.query(models.ContactInfo).first()
         if not contact:
-            print("🔧 Seeding contact...")
-            contact = models.ContactInfo(phone="+966500000000", whatsapp="+966500000000", email="info@adqdetails.com", location_ar="الرياض", location_en="Riyadh")
+            contact = models.ContactInfo(
+                phone="+966500000000", 
+                whatsapp="+966500000000", 
+                email="info@adqdetails.com", 
+                location_ar="الرياض", 
+                location_en="Riyadh"
+            )
             db.add(contact)
+            print("✅ Contact seeded")
         
+        # Seed services
         services_count = db.query(models.Service).count()
         if services_count == 0:
-            print("🔧 Seeding services...")
             for s in [("تصاميم ثلاثية الأبعاد", "3D Designs", 1), ("تحت البناء", "Under Construction", 2), ("مشاريع منجزة", "Finished Projects", 3)]:
                 db.add(models.Service(title_ar=s[0], title_en=s[1], order=s[2], is_active=True))
+            print("✅ Services seeded")
         
+        # Seed projects
         projects_count = db.query(models.Project).count()
         if projects_count == 0:
-            print("🔧 Seeding projects...")
             for p in [("فيلا سكنية", "Residential Villa", "3d"), ("مبنى تجاري", "Commercial Building", "construction"), ("شقة فاخرة", "Luxury Apartment", "finished")]:
                 db.add(models.Project(title_ar=p[0], title_en=p[1], category=p[2], image_url="", is_active=True))
+            print("✅ Projects seeded")
         
         db.commit()
         print("✅ Database ready!")
     except Exception as e:
-        print(f"Seed error: {e}")
+        print(f"❌ Seed error: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
