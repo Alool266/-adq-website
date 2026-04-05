@@ -46,6 +46,24 @@
           document.querySelectorAll('.services-title').forEach(el => el.innerHTML = servicesSection.title_ar || servicesSection.title_en || '');
         }
         
+        // Update projects - dynamically render from API
+        if (projects && projects.length > 0) {
+          const grid = document.querySelector('.projects-grid');
+          if (grid) {
+            grid.innerHTML = projects.map(p => `
+              <div class="project-card" data-category="${p.category || '3d'}">
+                <div class="project-image">
+                  ${p.image_url ? `<img src="${p.image_url}" alt="${p.title_ar || p.title_en}">` : '<div class="placeholder-img"><i class="fas fa-home"></i></div>'}
+                </div>
+                <div class="project-info">
+                  <h3>${p.title_ar || p.title_en}</h3>
+                  <p>${p.description_ar || p.description_en || ''}</p>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+        
         // Update contact info
         if (contact) {
           document.querySelectorAll('.contact-phone').forEach(el => el.textContent = contact.phone || '');
