@@ -48,12 +48,28 @@ def health_check():
 
 # Auto-seed database on startup - always seed to ensure we have data
 @app.on_event("startup")
-async def startup_seed():
+def startup_seed():
     from .database import SessionLocal
     from . import models
+    from .auth import get_password_hash
     db = SessionLocal()
     try:
         print("🔧 Checking database content...")
+        
+        # Create tables
+        models.Base.metadata.create_all(bind=db.get_bind())
+        
+        # Create admin user if not exists
+        admin = db.query(models.Admin).first()
+        if not admin:
+            admin = models.Admin(
+                username="admin",
+                email="admin@adq.com",
+                hashed_password=get_password_hash("admin123")
+            )
+            db.add(admin)
+            print("✅ Admin user created!")
+        
         # Always try to add default content if not exists
         hero = db.query(models.Section).filter_by(section_key="hero").first()
         if not hero:
@@ -235,36 +251,3 @@ def debug_info():
 def read_root():
     # Redirect to frontend
     return FileResponse(os.path.join(frontend_build, "index.html"))
-
-# Initialize database tables on startup
-@app.on_event("startup")
-def startup_event():
-    from . import database, models
-    from .auth import get_password_hash
-    try:
-        models.Base.metadata.create_all(bind=database.engine)
-        print("✅ Database tables created successfully")
-        
-        # Create admin user if not exists
-        db = database.SessionLocal()
-        try:
-            admin = db.query(models.Admin).first()
-            if not admin:
-                admin = models.Admin(
-                    username="admin",
-                    email="admin@adq.com",
-                    hashed_password=get_password_hash("admin123")
-                )
-                db.add(admin)
-                db.commit()
-                print("✅ Admin user created in startup!")
-            else:
-                print("✅ Admin user already exists in startup")
-        except Exception as e:
-            print(f"❌ Error creating admin: {e}")
-        finally:
-            db.close()
-    except Exception as e:
-        print(f"❌ Error creating tables: {e}")
-        import traceback
-        traceback.print_exc()
